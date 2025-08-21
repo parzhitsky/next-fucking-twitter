@@ -16,7 +16,7 @@ export class TweetsController {
   }
 
   // TODO: (param) tweet id
-  @Post(':id/like')
+  @Post(':tweetId/likes')
   @HttpCode(HttpStatus.ACCEPTED)
   async likeTweet(): Promise<Api.HttpResponseBody<never>> {
     throw new NotImplementedException()
