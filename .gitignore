@@ -1,0 +1,33 @@
+node_modules
+dist
+dist-ssr
+*.local
+coverage
+packages/client/vite.config.ts*.js
+packages/client/nginx.conf
+packages/playground/src/*
+!packages/playground/src/.gitkeep
+
+# Docker compose override files are used for development (port forwarding to host, persistence volumes, etc.)
+docker-compose.override.yml
+docker-compose.override.yaml
+volumes/*
+!volumes/.gitkeep
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: '${DB_PASS}'
+      POSTGRES_USER: '${DB_USER}'
+      POSTGRES_DB: '${DB_NAME}'
+    expose:
+      - '${DB_PORT_CONTAINER}'
+    command: |2
+      -p '${DB_PORT_CONTAINER}'
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 2s
+        max_attempts: 5
+        window: 60s
+    healthcheck:
+      test: pg_isready -h db -U '${DB_USER}' -p '${DB_PORT_CONTAINER}'
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  server:
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      context: '.'
+      dockerfile: server.dockerfile
+    environment:
+      PORT: '${SERVER_PORT_CONTAINER}'
+      DB_HOST: db
+      DB_PORT: '${DB_PORT_CONTAINER}'
+      DB_NAME:
+      DB_USER:
+      DB_PASS:
+    ports:
+      - '${SERVER_PORT_HOST}:${SERVER_PORT_CONTAINER}'
+
+  client:
+    depends_on:
+      - server
+    build:
+      context: '.'
+      dockerfile: client.dockerfile
+      args:
+        CLIENT_PORT_CONTAINER:
+        VITE_SERVER_BASE_URL: 'http://localhost:${SERVER_PORT_HOST}/'
+    ports:
+      - '${CLIENT_PORT_HOST}:${CLIENT_PORT_CONTAINER}'
