@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, EventSubscriber, JoinColumn, ManyToOne } from "typeorm"
 import { User } from "@/users/user.entity.js"
 import { Tweet } from "./tweet.entity.js"
+import { TweetLikeCountUpdater } from "./tweet-like-count-updater.abstract.js"
 
 @Entity('like')
 export class Like {
@@ -38,4 +39,11 @@ export class Like {
     default: () => 'CURRENT_TIMESTAMP',
   })
   readonly createdAt!: Date
+}
+
+@EventSubscriber()
+export class LikeSubscriber extends TweetLikeCountUpdater<Like> {
+  override listenTo() {
+    return Like
+  }
 }
