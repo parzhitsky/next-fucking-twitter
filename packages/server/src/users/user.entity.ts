@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity('user')
 export class User {
@@ -7,5 +7,12 @@ export class User {
   })
   readonly id!: string
 
-  // TODO: …
+  @Column({
+    name: 'alias',
+    type: 'varchar',
+    length: 255,
+    unique: true,
+    nullable: false,
+  })
+  readonly alias!: string
 }
