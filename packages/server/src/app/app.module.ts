@@ -6,6 +6,7 @@ import { HealthModule } from '@/health/health.module.js'
 import { TweetsModule } from '@/tweets/tweets.module.js'
 import { AppErrorFilter } from './app-error/app-error.filter.js'
 import { DevModule } from './dev/dev.module.js'
+import { CookieParserMiddleware } from './cookie-parser.middleware.js'
 import { HttpLoggerMiddleware } from './http-logger.middleware.js'
 import { HttpRateLimiterMiddleware } from './http-rate-limiter.middleware.js'
 
@@ -36,7 +37,7 @@ export class AppModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer): void {
     consumer
-      .apply(HttpLoggerMiddleware, HttpRateLimiterMiddleware)
+      .apply(HttpLoggerMiddleware, HttpRateLimiterMiddleware, CookieParserMiddleware)
       .forRoutes('*')
   }
 }
