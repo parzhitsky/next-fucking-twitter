@@ -1,15 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, NotImplementedException, Post, Res } from "@nestjs/common"
+import { Body, Controller, Post, Redirect, Res, Version } from "@nestjs/common"
 import { CookieOptions, Response } from 'express'
-import { Result } from "@@libs/@eco/utils/result/result.type.js"
 import { ConfigService } from "@/config/config.service.js"
-import { AuthService } from "./auth.service.js"
 import { ACCESS_TOKEN_TTL } from "./tokens/tokens.service.js"
+import { AuthService } from "./auth.service.js"
+import { Open } from "./open.decorator.js"
 import { UserCreds } from "./user-creds.dto.js"
 
 export interface SignInResBody {
   readonly refreshToken: string
 }
 
+@Open()
 @Controller('auth')
 export class AuthController {
   protected readonly accessTokenCookieOptions: CookieOptions = {
@@ -23,15 +24,18 @@ export class AuthController {
     protected readonly authService: AuthService,
   ) { }
 
-  // TODO: (body) userAlias + password
   @Post('signup')
-  @HttpCode(HttpStatus.CREATED)
-  async signUp(): Promise<Api.HttpResponseBody<never>> {
-    throw new NotImplementedException()
+  @Version('1')
+  @Redirect('/v1/auth/signin', 308)
+  async signUpV1(
+    @Body() creds: UserCreds,
+  ): Promise<void> {
+    await this.authService.signUp(creds)
   }
 
   @Post('signin')
-  async signIn(
+  @Version('1')
+  async signInV1(
     @Body() creds: UserCreds,
     @Res({ passthrough: true }) res: Response,
   ): Promise<Api.HttpResponseBody<SignInResBody>> {
