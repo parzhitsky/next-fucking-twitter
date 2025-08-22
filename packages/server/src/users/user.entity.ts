@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { PasswordHash } from "@/common/password-hash.js"
 
 @Entity('user')
 export class User {
@@ -22,5 +23,5 @@ export class User {
     length: 255,
     nullable: false,
   })
-  readonly passwordHash!: string
+  readonly passwordHash!: PasswordHash
 }

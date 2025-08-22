@@ -24,14 +24,16 @@ export interface RefreshTokenPayload extends TokenUserData {
 export class TokensService {
   readonly #tokenSecret = this.config.get(this.config.keys.TOKEN_SECRET)
 
+  private readonly withSecret = { secret: this.#tokenSecret } as const
+
   protected readonly accessTokenOptions: JwtSignOptions = {
+    ...this.withSecret,
     expiresIn: ACCESS_TOKEN_TTL / 1000,
-    secret: this.#tokenSecret,
   }
 
   protected readonly refreshTokenOptions: JwtSignOptions = {
+    ...this.withSecret,
     expiresIn: '7d',
-    secret: this.#tokenSecret,
   }
 
   constructor(
@@ -64,5 +66,9 @@ export class TokensService {
     ])
 
     return token
+  }
+
+  async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+    return this.jwtService.verifyAsync(token, this.withSecret)
   }
 }
