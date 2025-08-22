@@ -29,6 +29,7 @@ services:
       context: '.'
       dockerfile: server.dockerfile
     environment:
+      TOKEN_SECRET:
       PORT: '${SERVER_PORT_CONTAINER}'
       DB_HOST: db
       DB_PORT: '${DB_PORT_CONTAINER}'

@@ -6,7 +6,7 @@ import { IsValidEnum } from './is-valid-enum.decorator.js'
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
-    interface ProcessEnv extends ConfigDTO {}
+    interface ProcessEnv extends ConfigDTO { }
   }
 }
 
@@ -27,6 +27,10 @@ export class ConfigDTO {
   @IsString()
   @IsNotEmpty()
   readonly DB_HOST!: string
+
+  @IsString()
+  @IsNotEmpty()
+  readonly TOKEN_SECRET!: string
 
   @IsPort()
   readonly DB_PORT!: string

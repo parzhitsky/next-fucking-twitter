@@ -15,4 +15,12 @@ export class User {
     nullable: false,
   })
   readonly alias!: string
+
+  @Column({
+    name: 'password_hash',
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+  })
+  readonly passwordHash!: string
 }
