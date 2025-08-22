@@ -6,9 +6,9 @@ import { AuthService } from "./auth.service.js"
 import { ACCESS_TOKEN_TTL } from "./tokens/tokens.service.js"
 import { UserCreds } from "./user-creds.dto.js"
 
-export type SignInResult = Result<{
+export interface SignInResBody {
   readonly refreshToken: string
-}>
+}
 
 @Controller('auth')
 export class AuthController {
@@ -34,17 +34,14 @@ export class AuthController {
   async signIn(
     @Body() creds: UserCreds,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<Api.HttpResponseBody<SignInResult>> {
+  ): Promise<Api.HttpResponseBody<SignInResBody>> {
     const { accessToken, refreshToken } = await this.authService.signIn(creds)
 
     res.cookie('access_token', accessToken, this.accessTokenCookieOptions)
 
     return {
       result: {
-        success: true,
-        payload: {
-          refreshToken,
-        },
+        refreshToken,
       },
     }
   }
