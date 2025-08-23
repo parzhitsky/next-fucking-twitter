@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common"
 import { ClientError } from "@/app/app-error/app-error.js"
-import { compare, create } from "@/common/password-hash.js"
 import { UsersService } from "@/users/users.service.js"
+import { UserCreds } from "@/users/user-creds.dto.js"
 import { TokensService, TokenPair } from "./tokens/tokens.service.js"
-import { UserCreds } from "./user-creds.dto.js"
 
 @Injectable()
 export class AuthService {
@@ -12,43 +11,21 @@ export class AuthService {
     protected readonly tokensService: TokensService,
   ) { }
 
-  async signUp({ userAlias, password }: UserCreds): Promise<void> {
-    const user = await this.userService.findByAlias(userAlias)
-
-    if (user != null) {
-      throw new AliasAlreadyTakenError(userAlias)
-    }
-
-    const passwordHash = await create(password)
-
-    await this.userService.create(userAlias, passwordHash)
+  async signUp(creds: UserCreds): Promise<void> {
+    await this.userService.create(creds)
   }
 
-  async signIn({ userAlias, password }: UserCreds): Promise<TokenPair> {
-    const user = await this.userService.findByAlias(userAlias)
+  async signIn(creds: UserCreds): Promise<TokenPair> {
+    const user = await this.userService.findByCreds(creds)
 
     if (!user) {
-      throw new SignInError(userAlias)
-    }
-
-    const passed = await compare(password, user.passwordHash)
-
-    if (!passed) {
-      throw new SignInError(userAlias)
+      throw new SignInError(creds.userAlias)
     }
 
     return this.tokensService.generatePair({
       sub: user.id,
       alias: user.alias,
     })
-  }
-}
-
-export class AliasAlreadyTakenError extends ClientError {
-  public override readonly statusCode = '409'
-
-  constructor(public readonly userAlias: string) {
-    super(`Could not register user "${userAlias}": this alias is already taken`)
   }
 }
 
