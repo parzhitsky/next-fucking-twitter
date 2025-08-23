@@ -8,7 +8,7 @@ import { RefreshToken } from "./refresh-token.entity.js"
 
 // FIXME: This file is to long. Consider breaking this service into 2–3 smaller services
 
-export const ACCESS_TOKEN_TTL = 10_000 // TODO: set to 1 minute
+export const ACCESS_TOKEN_TTL = 60_000
 
 interface TokenUserData {
   /** User ID */
@@ -50,7 +50,7 @@ export class TokensService {
 
   protected readonly refreshTokenOptions: JwtSignOptions = {
     ...this.withSecret,
-    expiresIn: '1m', // TODO: set to 7 days
+    expiresIn: '5m', // TODO: set to 7 days
   }
 
   constructor(
