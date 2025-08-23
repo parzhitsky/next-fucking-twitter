@@ -161,7 +161,12 @@ export class TokensService {
     const isRevoked = this.getRefreshTokenIsRevoked(record)
 
     if (isRevoked) {
-      throw new RefreshTokenRevokedError(payload.jti)
+      throw new RefreshTokenRevokedError(record.id)
+        .addDetail({
+          public: true,
+          message: `Refresh token was revoked at ${record.revokedAt}`,
+          payload: record.revokedAt!,
+        })
     }
 
     await this.markRefreshTokenAsRevoked(record)
