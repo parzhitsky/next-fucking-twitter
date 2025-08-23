@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common"
 import { DbModule } from "@/db/db.module.js"
+import { FollowingsService } from "./followings.service.js"
 import { User } from "./user.entity.js"
 import { UsersController } from "./users.controller.js"
 import { UsersService } from "./users.service.js"
@@ -10,12 +11,14 @@ import { UsersService } from "./users.service.js"
   ],
   providers: [
     UsersService,
+    FollowingsService,
   ],
   controllers: [
     UsersController,
   ],
   exports: [
     UsersService,
+    FollowingsService,
   ],
 })
 export class UsersModule { }
