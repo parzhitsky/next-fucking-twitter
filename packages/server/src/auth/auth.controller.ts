@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Redirect, Res, Version } from "@nestjs/common"
+import { Body, Controller, HttpCode, HttpStatus, Post, Redirect, Res, Version } from "@nestjs/common"
 import { CookieOptions, Response } from 'express'
 import { ConfigService } from "@/config/config.service.js"
 import { ACCESS_TOKEN_TTL, TokenPair, TokensService } from "./tokens/tokens.service.js"
@@ -63,6 +63,7 @@ export class AuthController {
   }
 
   @Post('revoke')
+  @HttpCode(HttpStatus.ACCEPTED)
   async revokeAuth(
     @Body() body: HasRefreshToken,
     @Res({ passthrough: true }) res: Response,
