@@ -61,4 +61,18 @@ export class AuthController {
 
     return this.tokenPairApplied(res, tokenPair)
   }
+
+  @Post('revoke')
+  async revokeAuth(
+    @Body() body: HasRefreshToken,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Api.HttpResponseBody<null>> {
+    res.clearCookie('access_token', this.accessTokenCookieOptions)
+
+    await this.tokensService.revokeRefreshToken(body.refreshToken)
+
+    return {
+      result: null,
+    }
+  }
 }

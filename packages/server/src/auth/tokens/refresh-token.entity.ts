@@ -29,9 +29,9 @@ export class RefreshToken {
   readonly generatedFrom!: Promise<RefreshToken | null>
 
   @Column({
-    name: 'used_at',
+    name: 'revoked_at',
     type: 'timestamptz',
     nullable: true,
   })
-  usedAt!: Date | null
+  revokedAt!: Date | null
 }
