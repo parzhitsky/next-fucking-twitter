@@ -1,11 +1,15 @@
 import { NestFactory } from '@nestjs/core'
+import pg from 'pg'
 import { AppModule } from './app/app.module.js'
 import { decorateApp } from './app/decorate-app.js'
 import { createLogger } from './common/create-logger.js'
 import { ConfigModule } from './config/config.module.js'
 import { ConfigService } from './config/config.service.js'
 
+
 async function bootstrap(): Promise<void> {
+  pg.defaults.parseInt8 = true // `extra: { parseInt8: true }` doesn't work
+
   const logger = createLogger(bootstrap.name)
   const configContext = await NestFactory.createApplicationContext(ConfigModule, { logger })
   const config = configContext.get(ConfigService)

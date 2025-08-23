@@ -35,7 +35,7 @@
     "express-rate-limit": "7.5.0",
     "morgan": "1.10.0",
     "object-hash": "^3.0.0",
-    "pg": "8.13.1",
+    "pg": "8.16.3",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.1",
     "typeorm": "0.3.20"
@@ -52,6 +52,7 @@
     "@types/morgan": "1.9.9",
     "@types/node": "*",
     "@types/object-hash": "3.0.6",
+    "@types/pg": "8.15.5",
     "@types/supertest": "6.0.2",
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
