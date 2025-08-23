@@ -6,6 +6,7 @@ describe(validateConfig.name, () => {
   const validPlain: ConfigDTO = {
     NODE_ENV: EnvName.test,
     PORT: '1234',
+    TOKEN_SECRET: 'token_secret',
     RATE_LIMITER_TIMEFRAME_MSEC: 1000,
     RATE_LIMITER_MAX_HITS_PER_TIMEFRAME: 10,
     DB_HOST: 'db',
