@@ -5,6 +5,7 @@ import { Repository } from "typeorm"
 import { PaginationParams } from "@/common/pagination-params.dto.js"
 import { Following } from "@/users/following.entity.js"
 import { Tweet } from "./tweet.entity.js"
+import { TweetLikeCount } from "./tweet-like-count.entity.js"
 
 export const TIMELINE_LIMIT_DEFAULT = 10
 
@@ -17,9 +18,11 @@ export interface GetTimelineParams extends PaginationParams {
 export interface TimelineRow {
   readonly sequence_number: number
   readonly tweet_id: string
-  readonly author_alias: Date
+  readonly author_id: string
+  readonly author_alias: string
   readonly tweet_created_at: string
   readonly tweet_text: string
+  readonly likes_count: number
 }
 
 @Injectable()
@@ -38,13 +41,16 @@ export class TimelineService {
       .createQueryBuilder('tweet')
       .innerJoin('tweet.createdBy', 'author')
       .innerJoin(Following, 'f', 'f.followee_id = author.id')
+      .innerJoin(TweetLikeCount, 'tlc', 'tweet.id = tlc.tweet_id')
       .where('f.follower_id = :followerId', { followerId })
       .select([
         'row_number() over (order by tweet.created_at desc) as sequence_number',
         'tweet.id as tweet_id',
+        'author.id as author_id',
         'author.alias as author_alias',
         'tweet.created_at as tweet_created_at',
         'tweet.text as tweet_text',
+        'tlc.like_count as tweet_like_count',
       ])
       .orderBy('tweet.created_at', 'DESC')
       .limit(limit)
