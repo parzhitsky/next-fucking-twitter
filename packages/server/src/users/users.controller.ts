@@ -1,4 +1,4 @@
-import { Controller, Param, Post, Redirect, Version } from "@nestjs/common"
+import { Controller, HttpRedirectResponse, Param, Post, Redirect, Version } from "@nestjs/common"
 import { Open } from "@/auth/open.decorator.js"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
 import { FollowUserReqParams } from "./follow-user-req-params.dto.js"
@@ -16,10 +16,15 @@ export class UsersController {
   @Open()
   @Post()
   @Version('1')
-  @Redirect('/v1/auth/signup', 308)
-  async createUserV1(): Promise<void> { }
+  @Redirect()
+  async createUserV1(): Promise<HttpRedirectResponse> {
+    return {
+      url: '/v1/auth/signup?nosignin=1',
+      statusCode: 308,
+    }
+  }
 
-  @Post(':followeeAlias/following')
+  @Post(':followeeAlias/followings')
   async followUser(
     @AccessClaims() claims: AccessClaims,
     @Param() { followeeAlias }: FollowUserReqParams,

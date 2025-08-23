@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Redirect, Res, Version } from "@nestjs/common"
+import { Body, Controller, HttpCode, HttpStatus, Post, Query, Res, Version } from "@nestjs/common"
 import { CookieOptions, Response } from 'express'
 import { ConfigService } from "@/config/config.service.js"
 import { ACCESS_TOKEN_TTL, TokenPair, TokensService } from "./tokens/tokens.service.js"
@@ -6,6 +6,7 @@ import { AuthService } from "./auth.service.js"
 import { HasRefreshToken } from "./has-refresh-token.dto.js"
 import { Open } from "./open.decorator.js"
 import { UserCreds } from "./user-creds.dto.js"
+import { SignUpReqQuery } from "./signup-req-query.dto.js"
 
 @Open()
 @Controller('auth')
@@ -24,11 +25,16 @@ export class AuthController {
 
   @Post('signup')
   @Version('1')
-  @Redirect('/v1/auth/signin', 308)
   async signUpV1(
     @Body() creds: UserCreds,
+    @Query() { nosignin: noSignIn }: SignUpReqQuery,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     await this.authService.signUp(creds)
+
+    if (!noSignIn) {
+      res.redirect(308, '/v1/auth/signin')
+    }
   }
 
   protected tokenPairApplied(res: Response, { accessToken, refreshToken }: TokenPair): Api.HttpResponseBody<HasRefreshToken> {
