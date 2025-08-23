@@ -18,11 +18,16 @@ export class LikesService {
     protected readonly tweetLikeCountRepo: Repository<TweetLikeCount>,
   ) { }
 
+  /** @deprecated Use cache + cron job */
+  async refreshLikeCounts(): Promise<void> {
+    await this.tweetLikeCountRepo.query(`REFRESH MATERIALIZED VIEW ${this.tweetLikeCountRepo.metadata.tableNameWithoutPrefix};`)
+  }
+
   async getLikesCount(tweetId: string): Promise<number> {
     const record = await this.tweetLikeCountRepo.findOneBy({ tweetId })
 
     if (!record) {
-      this.logger.warn(`Attempted to get like count of a tweet "${tweetId}", but the record is not found; falling back to 0`)
+      this.logger.warn(`No like count record found for tweet "${tweetId}"; falling back to 0 likes`)
 
       return 0
     }
@@ -40,9 +45,10 @@ export class LikesService {
 
     const like = this.likesRepository.create(props)
 
-    return this.likesRepository.save(like)
+    await this.likesRepository.save(like)
+    await this.refreshLikeCounts()
 
-    // TODO: check whether tweet_like_count is updated automatically
+    return like
   }
 }
 
