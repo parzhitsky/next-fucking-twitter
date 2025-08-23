@@ -2,13 +2,8 @@ import { Injectable } from "@nestjs/common"
 import { ClientError } from "@/app/app-error/app-error.js"
 import { compare, create } from "@/common/password-hash.js"
 import { UsersService } from "@/users/users.service.js"
+import { TokensService, TokenPair } from "./tokens/tokens.service.js"
 import { UserCreds } from "./user-creds.dto.js"
-import { AccessTokenPayload, TokensService } from "./tokens/tokens.service.js"
-
-export interface TokenPair {
-  readonly accessToken: string
-  readonly refreshToken: string
-}
 
 @Injectable()
 export class AuthService {
@@ -21,7 +16,7 @@ export class AuthService {
     const user = await this.userService.findByAlias(userAlias)
 
     if (user != null) {
-      throw new AliasTakenError(userAlias)
+      throw new AliasAlreadyTakenError(userAlias)
     }
 
     const passwordHash = await create(password)
@@ -42,28 +37,14 @@ export class AuthService {
       throw new SignInError(userAlias)
     }
 
-    const userData = this.tokensService.createUserData({
+    return this.tokensService.generatePair({
       sub: user.id,
       alias: user.alias,
     })
-
-    const [accessToken, refreshToken] = await Promise.all([
-      this.tokensService.generateAccessToken(userData),
-      this.tokensService.generateRefreshToken(userData),
-    ])
-
-    return {
-      accessToken,
-      refreshToken,
-    }
-  }
-
-  async authorize(accessToken: string): Promise<AccessTokenPayload> {
-    return this.tokensService.verifyAccessToken(accessToken)
   }
 }
 
-export class AliasTakenError extends ClientError {
+export class AliasAlreadyTakenError extends ClientError {
   public override readonly statusCode = '409'
 
   constructor(public readonly userAlias: string) {

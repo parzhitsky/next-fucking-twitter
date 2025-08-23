@@ -1,14 +1,11 @@
 import { Body, Controller, Post, Redirect, Res, Version } from "@nestjs/common"
 import { CookieOptions, Response } from 'express'
 import { ConfigService } from "@/config/config.service.js"
-import { ACCESS_TOKEN_TTL } from "./tokens/tokens.service.js"
+import { ACCESS_TOKEN_TTL, TokenPair, TokensService } from "./tokens/tokens.service.js"
 import { AuthService } from "./auth.service.js"
+import { HasRefreshToken } from "./has-refresh-token.dto.js"
 import { Open } from "./open.decorator.js"
 import { UserCreds } from "./user-creds.dto.js"
-
-export interface SignInResBody {
-  readonly refreshToken: string
-}
 
 @Open()
 @Controller('auth')
@@ -22,6 +19,7 @@ export class AuthController {
   constructor(
     protected readonly config: ConfigService,
     protected readonly authService: AuthService,
+    protected readonly tokensService: TokensService,
   ) { }
 
   @Post('signup')
@@ -33,14 +31,7 @@ export class AuthController {
     await this.authService.signUp(creds)
   }
 
-  @Post('signin')
-  @Version('1')
-  async signInV1(
-    @Body() creds: UserCreds,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<Api.HttpResponseBody<SignInResBody>> {
-    const { accessToken, refreshToken } = await this.authService.signIn(creds)
-
+  protected tokenPairApplied(res: Response, { accessToken, refreshToken }: TokenPair): Api.HttpResponseBody<HasRefreshToken> {
     res.cookie('access_token', accessToken, this.accessTokenCookieOptions)
 
     return {
@@ -48,5 +39,26 @@ export class AuthController {
         refreshToken,
       },
     }
+  }
+
+  @Post('signin')
+  @Version('1')
+  async signInV1(
+    @Body() creds: UserCreds,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Api.HttpResponseBody<HasRefreshToken>> {
+    const tokenPair = await this.authService.signIn(creds)
+
+    return this.tokenPairApplied(res, tokenPair)
+  }
+
+  @Post('refresh')
+  async refresh(
+    @Body() body: HasRefreshToken,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Api.HttpResponseBody<HasRefreshToken>> {
+    const tokenPair = await this.tokensService.refreshPair(body.refreshToken)
+
+    return this.tokenPairApplied(res, tokenPair)
   }
 }
