@@ -1,19 +1,32 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Post } from "@nestjs/common"
+import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Post, Query } from "@nestjs/common"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
+import { PaginationParams } from "@/common/pagination-params.dto.js"
 import { CreateTweetReqBody } from "./create-tweet-req-body.dto.js"
 import { Tweet } from "./tweet.entity.js"
 import { TweetsService } from "./tweets.service.js"
+import { TimelineRow, TimelineService } from "./timeline.service.js"
 
 @Controller('tweets')
 export class TweetsController {
   constructor(
     protected readonly tweetsService: TweetsService,
+    protected readonly timelineService: TimelineService,
   ) { }
 
-  // TODO: (query) limit + offset
   @Get()
-  async getTweets(): Promise<Api.HttpResponseBodyListPaginated<never>> {
-    throw new NotImplementedException()
+  async getTimeline(
+    @AccessClaims() claims: AccessClaims,
+    @Query() paginationParams: PaginationParams,
+  ): Promise<Api.HttpResponseBodyListPaginated<TimelineRow>> {
+    const { items: timeline, pagination } = await this.timelineService.getTimeline({
+      ...paginationParams,
+      followerId: claims.userId,
+    })
+
+    return {
+      result: timeline,
+      pagination,
+    }
   }
 
   @Post()
