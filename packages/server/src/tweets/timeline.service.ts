@@ -41,7 +41,7 @@ export class TimelineService {
       .createQueryBuilder('tweet')
       .innerJoin('tweet.createdBy', 'author')
       .innerJoin(Following, 'f', 'f.followee_id = author.id')
-      .innerJoin(TweetLikeCount, 'tlc', 'tweet.id = tlc.tweet_id')
+      .leftJoin(TweetLikeCount, 'tlc', 'tweet.id = tlc.tweet_id')
       .where('f.follower_id = :followerId', { followerId })
       .select([
         'row_number() over (order by tweet.created_at desc) as sequence_number',
@@ -50,7 +50,7 @@ export class TimelineService {
         'author.alias as author_alias',
         'tweet.created_at as tweet_created_at',
         'tweet.text as tweet_text',
-        'tlc.like_count as tweet_like_count',
+        'coalesce(tlc.like_count, 0) as tweet_like_count',
       ])
       .orderBy('tweet.created_at', 'DESC')
       .limit(limit)
