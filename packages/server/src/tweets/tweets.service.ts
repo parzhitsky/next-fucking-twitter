@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Repository } from "typeorm"
 import { ClientError } from "@/app/app-error/app-error.js"
+import { LikesService } from "./likes.service.js"
 import { Tweet } from "./tweet.entity.js"
 
 @Injectable()
@@ -9,6 +10,7 @@ export class TweetsService {
   constructor(
     @InjectRepository(Tweet)
     protected readonly tweetRepository: Repository<Tweet>,
+    protected readonly likeService: LikesService,
   ) { }
 
   async getById(id: string): Promise<Tweet> {
@@ -27,7 +29,10 @@ export class TweetsService {
       text,
     })
 
-    return this.tweetRepository.save(tweet)
+    await this.tweetRepository.save(tweet)
+    await this.likeService.refreshLikeCounts()
+
+    return tweet
   }
 }
 

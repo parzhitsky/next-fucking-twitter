@@ -1,6 +1,5 @@
-import { Column, Entity, EventSubscriber, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 import { User } from "@/users/user.entity.js"
-import { TweetLikeCountUpdater } from "./tweet-like-count-updater.abstract.js"
 
 export const TEXT_MAX_LENGTH = 280
 

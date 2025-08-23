@@ -1,6 +1,7 @@
 import { ViewColumn, ViewEntity } from "typeorm"
 import { Like } from "./like.entity.js"
 
+/** @deprecated Use cache + cron job */
 @ViewEntity({
   materialized: true,
   name: 'tweet_like_count',
