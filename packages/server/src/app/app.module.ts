@@ -1,4 +1,5 @@
 import { type MiddlewareConsumer, Module, type NestModule, type DynamicModule } from '@nestjs/common'
+import { ScheduleModule } from '@nestjs/schedule'
 import { AuthModule } from '@/auth/auth.module.js'
 import { ConfigModule } from '@/config/config.module.js'
 import { DbModule } from '@/db/db.module.js'
@@ -17,6 +18,7 @@ interface RegisterParams {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule,
     DbModule,
     AuthModule,

@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
+import { Cron } from "@nestjs/schedule"
 import { Repository } from "typeorm"
 import { ClientError } from "@/app/app-error/app-error.js"
 import { createLogger } from "@/common/create-logger.js"
@@ -19,6 +20,7 @@ export class LikesService {
   ) { }
 
   /** @deprecated Use cache + cron job */
+  @Cron('* * * * *')
   async refreshLikeCounts(): Promise<void> {
     await this.tweetLikeCountRepo.query(`REFRESH MATERIALIZED VIEW ${this.tweetLikeCountRepo.metadata.tableNameWithoutPrefix};`)
   }
