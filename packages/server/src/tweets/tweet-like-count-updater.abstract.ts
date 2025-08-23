@@ -4,7 +4,7 @@ export abstract class TweetLikeCountUpdater<Entity extends object> implements En
   abstract listenTo(): { new(): Entity }
 
   protected async refreshTweetLikeCount(dataSource: DataSource): Promise<void> {
-    await dataSource.query(`refresh materialized view concurrently tweet_like_count;`) // TODO: Log errors without crashing
+    await dataSource.query(`refresh materialized view tweet_like_count;`) // TODO: Log errors without crashing
   }
 
   async afterInsert(event: InsertEvent<Entity>): Promise<void> {

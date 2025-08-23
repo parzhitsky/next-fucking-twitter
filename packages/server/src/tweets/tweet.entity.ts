@@ -40,10 +40,3 @@ export class Tweet {
   })
   readonly createdAt!: Date
 }
-
-@EventSubscriber()
-export class TweetSubscriber extends TweetLikeCountUpdater<Tweet> {
-  override listenTo() {
-    return Tweet
-  }
-}
