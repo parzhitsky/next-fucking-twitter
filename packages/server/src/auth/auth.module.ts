@@ -22,6 +22,7 @@ import { TokensModule } from './tokens/tokens.module.js'
     AuthController,
   ],
   exports: [
+    TokensModule,
     AuthService,
   ],
 })
