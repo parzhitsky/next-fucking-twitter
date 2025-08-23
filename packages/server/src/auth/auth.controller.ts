@@ -1,11 +1,11 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Query, Res, Version } from "@nestjs/common"
 import { CookieOptions, Response } from 'express'
 import { ConfigService } from "@/config/config.service.js"
+import { UserCreds } from "@/users/user-creds.dto.js"
 import { ACCESS_TOKEN_TTL, TokenPair, TokensService } from "./tokens/tokens.service.js"
 import { AuthService } from "./auth.service.js"
 import { HasRefreshToken } from "./has-refresh-token.dto.js"
 import { Open } from "./open.decorator.js"
-import { UserCreds } from "./user-creds.dto.js"
 import { SignUpReqQuery } from "./signup-req-query.dto.js"
 
 @Open()

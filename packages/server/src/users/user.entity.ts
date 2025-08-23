@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
-import { PasswordHash } from "@/common/password-hash.js"
+import { PasswordHash } from "./password-hash.js"
 
 @Entity('user')
 export class User {
