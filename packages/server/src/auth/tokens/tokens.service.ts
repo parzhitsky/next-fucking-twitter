@@ -116,35 +116,55 @@ export class TokensService {
     return this.refreshTokenRepo.findOneBy({ id: jti })
   }
 
-  protected getRefreshTokenIsUsed(record: RefreshToken): boolean {
-    if (record.usedAt == null) {
+  protected getRefreshTokenIsRevoked(record: RefreshToken): boolean {
+    if (record.revokedAt == null) {
       return false
     }
 
-    if (record.usedAt.getTime() >= Date.now()) {
-      throw new RefreshTokenUsedInFutureError(record.id)
+    if (record.revokedAt.getTime() >= Date.now()) {
+      throw new RefreshTokenRevokedInFutureError(record.id)
     }
 
     return true
   }
 
-  async refreshPair(refreshToken: string): Promise<TokenPair> {
-    const payload = await this.verifyToken('refresh', refreshToken)
+  protected async verifyRefreshToken(token: string): Promise<[RefreshTokenPayload, RefreshToken | null]> {
+    const payload = await this.verifyToken('refresh', token)
     const record = await this.findRefreshTokenRecordByJti(payload.jti)
+
+    return [payload, record]
+  }
+
+  protected async markRefreshTokenAsRevoked(record: RefreshToken): Promise<void> {
+    record.revokedAt = new Date()
+
+    await this.refreshTokenRepo.save(record)
+  }
+
+  async revokeRefreshToken(token: string): Promise<void> {
+    const [payload, record] = await this.verifyRefreshToken(token)
 
     if (record == null) {
       throw new RefreshTokenNotFoundError(payload.jti)
     }
 
-    const isUsed = this.getRefreshTokenIsUsed(record)
+    await this.markRefreshTokenAsRevoked(record)
+  }
 
-    if (isUsed) {
-      throw new RefreshTokenAlreadyUsedError(payload.jti)
+  async refreshPair(refreshToken: string): Promise<TokenPair> {
+    const [payload, record] = await this.verifyRefreshToken(refreshToken)
+
+    if (record == null) {
+      throw new RefreshTokenNotFoundError(payload.jti)
     }
 
-    record.usedAt = new Date()
+    const isRevoked = this.getRefreshTokenIsRevoked(record)
 
-    await this.refreshTokenRepo.save(record)
+    if (isRevoked) {
+      throw new RefreshTokenRevokedError(payload.jti)
+    }
+
+    await this.markRefreshTokenAsRevoked(record)
 
     const tokenPair = await this.generatePair(payload)
 
@@ -214,24 +234,26 @@ export class RefreshTokenNotFoundError extends ServerError implements RefreshTok
   }
 }
 
-export class RefreshTokenUsedInFutureError extends ServerError implements RefreshTokenError {
+export class RefreshTokenRevokedInFutureError extends ServerError implements RefreshTokenError {
+  protected static readonly detailMessage = "Refresh token being revoked in the future does not make sense in the context of the current implementation"
+
   public override readonly statusCode = '500'
 
   constructor(public readonly jti: string) {
-    super(`Refresh token "${jti}" is marked to will have been used in the future`)
+    super(`Refresh token "${jti}" is marked to will have been revoked in the future`)
 
     this.addDetail({
       public: false,
-      message: "Refresh token being used in the future does not make sense, this needs debugging",
+      message: new.target.detailMessage,
       payload: jti,
     })
   }
 }
 
-export class RefreshTokenAlreadyUsedError extends ClientError implements RefreshTokenError {
+export class RefreshTokenRevokedError extends ClientError implements RefreshTokenError {
   public override readonly statusCode = '403'
 
   constructor(public readonly jti: string) {
-    super(`Refresh token "${jti}" is already used, cannot use it more than once`)
+    super(`Refresh token "${jti}" is revoked`)
   }
 }
