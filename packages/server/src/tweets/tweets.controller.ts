@@ -1,8 +1,8 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Post } from "@nestjs/common"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
 import { CreateTweetReqBody } from "./create-tweet-req-body.dto.js"
-import { TweetsService } from "./tweets.service.js"
 import { Tweet } from "./tweet.entity.js"
+import { TweetsService } from "./tweets.service.js"
 
 @Controller('tweets')
 export class TweetsController {
