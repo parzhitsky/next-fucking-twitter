@@ -10,18 +10,20 @@ import { RefreshToken } from "./refresh-token.entity.js"
 
 export const ACCESS_TOKEN_TTL = 10_000 // TODO: set to 1 minute
 
-export interface TokenUserData {
+interface TokenUserData {
   /** User ID */
   readonly sub: string
   readonly alias: string
 }
 
-export interface AccessTokenPayload extends TokenUserData { }
+interface AccessTokenPayload extends TokenUserData { }
 
-export interface RefreshTokenPayload extends TokenUserData {
+interface RefreshTokenPayload extends TokenUserData {
   /** Token ID */
   readonly jti: string
 }
+
+type GeneratePairInput = Partial<RefreshTokenPayload> & Required<TokenUserData>
 
 export interface TokenPair {
   readonly accessToken: string
@@ -63,23 +65,25 @@ export class TokensService {
     return this.jwtService.signAsync({ sub, alias }, this.accessTokenOptions)
   }
 
-  protected async createRefreshTokenRecord(): Promise<RefreshToken> {
-    const record = this.refreshTokenRepo.create()
+  protected async createRefreshTokenRecord(oldJti?: string): Promise<RefreshToken> {
+    const record = this.refreshTokenRepo.create({
+      generatedFromId: oldJti ?? null,
+    })
 
     return this.refreshTokenRepo.save(record)
   }
 
-  protected async generateRefreshToken(sub: string, alias: string): Promise<string> {
-    const record = await this.createRefreshTokenRecord()
+  protected async generateRefreshToken(sub: string, alias: string, oldJti?: string): Promise<string> {
+    const record = await this.createRefreshTokenRecord(oldJti)
     const payload: RefreshTokenPayload = { sub, alias, jti: record.id }
 
     return this.jwtService.signAsync(payload, this.refreshTokenOptions)
   }
 
-  async generatePair({ sub, alias }: TokenUserData): Promise<TokenPair> {
+  async generatePair({ sub, alias, jti }: GeneratePairInput): Promise<TokenPair> {
     const [accessToken, refreshToken] = await Promise.all([
       this.generateAccessToken(sub, alias),
-      this.generateRefreshToken(sub, alias),
+      this.generateRefreshToken(sub, alias, jti),
     ])
 
     return {
