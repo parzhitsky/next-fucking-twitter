@@ -49,6 +49,7 @@ export class AuthController {
 
   @Post('signin')
   @Version('1')
+  @HttpCode(HttpStatus.OK)
   async signInV1(
     @Body() creds: UserCreds,
     @Res({ passthrough: true }) res: Response,
@@ -59,6 +60,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() body: HasRefreshToken,
     @Res({ passthrough: true }) res: Response,
