@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Post, Query } from "@nestjs/common"
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
 import { PaginationParams } from "@/common/pagination-params.dto.js"
 import { CreateTweetReqBody } from "./create-tweet-req-body.dto.js"
+import { LikeTweetReqParams } from "./like-tweet-req-params.dto.js"
+import { LikesService } from "./likes.service.js"
 import { Tweet } from "./tweet.entity.js"
 import { TweetsService } from "./tweets.service.js"
 import { TimelineRow, TimelineService } from "./timeline.service.js"
@@ -11,6 +13,7 @@ export class TweetsController {
   constructor(
     protected readonly tweetsService: TweetsService,
     protected readonly timelineService: TimelineService,
+    protected readonly likesService: LikesService,
   ) { }
 
   @Get()
@@ -42,10 +45,19 @@ export class TweetsController {
     }
   }
 
-  // TODO: (param) tweet id
   @Post(':tweetId/likes')
   @HttpCode(HttpStatus.ACCEPTED)
-  async likeTweet(): Promise<Api.HttpResponseBody<never>> {
-    throw new NotImplementedException()
+  async likeTweet(
+    @AccessClaims() claims: AccessClaims,
+    @Param() { tweetId }: LikeTweetReqParams,
+  ): Promise<Api.HttpResponseBody<number>> {
+    const tweet = await this.tweetsService.getById(tweetId)
+    const likeCount = await this.likesService.getLikesCount(tweet.id)
+
+    await this.likesService.likeTweet(claims.userId, tweet.id)
+
+    return {
+      result: likeCount + 1,
+    }
   }
 }

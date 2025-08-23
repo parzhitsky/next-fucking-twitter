@@ -25,6 +25,9 @@ export const dataSourceOptionsProvider: Provider<DataSourceOptions> = {
     username: config.get(config.keys.DB_USER),
     password: config.get(config.keys.DB_PASS),
     database: config.get(config.keys.DB_NAME),
+    subscribers: [
+      resolve(packageSourceCodeDirPath, '**/*.subscriber.{ts,js}'),
+    ],
     entities: [
       resolve(packageSourceCodeDirPath, '**/*.{model,entity}.{ts,js}'),
     ],
