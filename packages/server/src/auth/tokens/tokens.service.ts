@@ -16,9 +16,9 @@ interface TokenUserData {
   readonly alias: string
 }
 
-interface AccessTokenPayload extends TokenUserData { }
+export interface AccessTokenPayload extends TokenUserData { }
 
-interface RefreshTokenPayload extends TokenUserData {
+export interface RefreshTokenPayload extends TokenUserData {
   /** Token ID */
   readonly jti: string
 }

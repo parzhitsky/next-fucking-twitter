@@ -2,6 +2,8 @@ import { Column, Entity, EventSubscriber, JoinColumn, ManyToOne, PrimaryGenerate
 import { User } from "@/users/user.entity.js"
 import { TweetLikeCountUpdater } from "./tweet-like-count-updater.abstract.js"
 
+export const TEXT_MAX_LENGTH = 280
+
 @Entity('tweet')
 export class Tweet {
   @PrimaryGeneratedColumn('uuid', {
