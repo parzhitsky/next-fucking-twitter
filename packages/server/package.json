@@ -67,6 +67,6 @@
     "tsc-alias": "1.8.10",
     "tsx": "4.19.2",
     "typescript": "*",
-    "vitest": "3.0.6"
+    "vitest": "3.2.4"
   }
 }
