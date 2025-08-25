@@ -4,6 +4,7 @@ import { Repository } from "typeorm"
 import { ClientError } from "@/app/app-error/app-error.js"
 import { Like } from "./like.entity.js"
 import { TweetLikeCountCacheService } from "./tweet-like-count-cache.service.js"
+import { TweetLikeCountCacheRefresherService } from "./tweet-like-count-cache-refresher.service.js"
 
 interface LikeBare {
   readonly userId: string
@@ -16,6 +17,7 @@ export class LikesService {
     @InjectRepository(Like)
     protected readonly likesRepository: Repository<Like>,
     protected readonly tweetLikeCountCacheService: TweetLikeCountCacheService,
+    protected readonly tweetLikeCountCacheRefresherService: TweetLikeCountCacheRefresherService,
   ) { }
 
   protected async addLikeRecord(props: LikeBare): Promise<Like> {
@@ -23,7 +25,10 @@ export class LikesService {
 
     await this.likesRepository.save(like)
 
-    /* no await */ this.tweetLikeCountCacheService.incrementCount(props.tweetId)
+    /* no await */ Promise.all([
+      this.tweetLikeCountCacheService.incrementCount(props.tweetId),
+      this.tweetLikeCountCacheRefresherService.signalDbUpdate(),
+    ])
 
     return like
   }
@@ -51,7 +56,7 @@ export class TweetAlreadyLikedError extends ClientError {
 
     this.addDetail({
       public: true,
-      message: `User "${userId}" attempted to like tweet "${tweetId}"`,
+      message: `User "${userId}" attempted to like tweet "${tweetId}" again`,
       payload: {
         userId,
         tweetId,

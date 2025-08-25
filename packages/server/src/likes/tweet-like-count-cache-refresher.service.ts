@@ -11,11 +11,11 @@ const storeId = 'tweetLikeCountUpdateTrace'
 
 type Landscape = {
   readonly [storeId]: {
-    readonly dbLastUpdatedAt: {
-      readonly value: number
+    readonly db: {
+      readonly lastUpdatedAt: number
     }
-    readonly cacheLastUpdatedAt: {
-      readonly value: number
+    readonly cache: {
+      readonly lastUpdatedAt: number
     }
   }
 }
@@ -36,7 +36,12 @@ export class TweetLikeCountCacheRefresherService {
     protected readonly tweetLikeCountCacheService: TweetLikeCountCacheService,
   ) { }
 
+  async signalDbUpdate(): Promise<void> {
+    await this.cache.set(storeId, 'db', 'lastUpdatedAt', Date.now())
+  }
+
   protected async refreshLikeCounts(): Promise<void> {
+    const now = Date.now()
     const query = this.likesRepository
       .createQueryBuilder()
       .from(Like, 'like')
@@ -50,6 +55,12 @@ export class TweetLikeCountCacheRefresherService {
     })
 
     await Promise.all(countsSet)
+    await this.cache.set(storeId, 'cache', 'lastUpdatedAt', now)
+  }
+
+  /** @ignore */
+  async onApplicationBootstrap(): Promise<void> {
+    await this.refreshLikeCounts()
   }
 
   @Cron('* * * * *')
@@ -58,9 +69,14 @@ export class TweetLikeCountCacheRefresherService {
       dbLastUpdatedAt,
       cacheLastUpdatedAt,
     ] = await Promise.all([
-      this.cache.get(storeId, 'dbLastUpdatedAt', 'value'),
-      this.cache.get(storeId, 'cacheLastUpdatedAt', 'value'),
+      this.cache.get(storeId, 'db', 'lastUpdatedAt'),
+      this.cache.get(storeId, 'cache', 'lastUpdatedAt'),
     ])
+
+    this.logger.debug({
+      dbLastUpdatedAt,
+      cacheLastUpdatedAt,
+    })
 
     const needed = (
       dbLastUpdatedAt == null || // TODO: think about this
@@ -69,19 +85,9 @@ export class TweetLikeCountCacheRefresherService {
     )
 
     if (!needed) {
-      this.logger.log(`Update not needed; last cache update was at ${new Date(cacheLastUpdatedAt)}`)
-
-      return
+      this.logger.log('Update not needed')
+    } else {
+      await this.refreshLikeCounts()
     }
-
-    const now = Date.now()
-
-    await this.refreshLikeCounts()
-    await this.cache.set(storeId, 'cacheLastUpdatedAt', 'value', now)
-  }
-
-  /** @ignore */
-  async onApplicationBootstrap(): Promise<void> {
-    await this.refreshLikeCounts()
   }
 }

@@ -1,9 +1,10 @@
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
-import { Controller, Get, HttpCode, HttpStatus, Param, Post } from "@nestjs/common"
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from "@nestjs/common"
 import { TweetsService } from "@/tweets/tweets.service.js"
+import { GetCountsReqBody } from "./get-counts-req-body.dto.js"
 import { HasTweetIdReqParams } from "./has-tweet-id-req-params.dto.js"
 import { LikesService } from "./likes.service.js"
-import { TweetLikeCountCacheService } from "./tweet-like-count-cache.service.js"
+import { Counts, TweetLikeCountCacheService } from "./tweet-like-count-cache.service.js"
 
 @Controller('likes')
 export class LikesController {
@@ -12,6 +13,17 @@ export class LikesController {
     protected readonly likesService: LikesService,
     protected readonly tweetLikeCountCacheService: TweetLikeCountCacheService,
   ) { }
+
+  @Get()
+  async getCounts(
+    @Body() { tweetIds }: GetCountsReqBody,
+  ): Promise<Api.HttpResponseBody<Counts>> {
+    const counts = await this.tweetLikeCountCacheService.getCounts(tweetIds)
+
+    return {
+      result: counts,
+    }
+  }
 
   @Get(':tweetId')
   async getCount(

@@ -24,6 +24,10 @@ interface GetCountParams {
   readonly autoInitialize?: AutoInitialize | false
 }
 
+export interface Counts {
+  readonly [tweetId: string]: number
+}
+
 @Injectable()
 export class TweetLikeCountCacheService {
   constructor(
@@ -54,6 +58,17 @@ export class TweetLikeCountCacheService {
     }
 
     return count ?? 0
+  }
+
+  async getCounts(tweetIds: string[]): Promise<Counts> {
+    const countEntries = await Promise.all(tweetIds.map(async (id) => [
+      id,
+      await this.getCount(id),
+    ] as const))
+
+    const counts = Object.fromEntries(countEntries)
+
+    return counts
   }
 
   async incrementCount(tweetId: string): Promise<number> {
