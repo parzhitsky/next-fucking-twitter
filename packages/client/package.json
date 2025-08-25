@@ -34,7 +34,7 @@
     "@typescript-eslint/parser": "*",
     "@vitejs/plugin-react": "4.3.4",
     "eslint": "*",
-    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-import": "2.32.0",
     "eslint-plugin-n": "17.15.1",
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-react": "7.37.4",
