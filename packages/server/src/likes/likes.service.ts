@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Repository } from "typeorm"
 import { ClientError } from "@/app/app-error/app-error.js"
-import { createLogger } from "@/common/create-logger.js"
 import { Like } from "./like.entity.js"
 import { TweetLikeCountCacheService } from "./tweet-like-count-cache.service.js"
 
@@ -13,8 +12,6 @@ interface LikeBare {
 
 @Injectable()
 export class LikesService {
-  protected readonly logger = createLogger(this.constructor.name)
-
   constructor(
     @InjectRepository(Like)
     protected readonly likesRepository: Repository<Like>,

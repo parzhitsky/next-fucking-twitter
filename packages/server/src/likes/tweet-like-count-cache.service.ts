@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common"
-import { Cron } from "@nestjs/schedule"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Repository } from "typeorm"
 import { ServerError } from "@/app/app-error/app-error.js"
@@ -14,11 +13,6 @@ type Landscape = {
       readonly count: number
     }
   }
-}
-
-interface TweetLikeCountEntryRaw {
-  readonly tweet_id: string
-  readonly like_count: number
 }
 
 export const enum AutoInitialize {
@@ -38,27 +32,10 @@ export class TweetLikeCountCacheService {
     protected readonly cache: CacheService<Landscape>,
   ) { }
 
-  protected async setCount(tweetId: string, newCount: number): Promise<number> {
+  async setCount(tweetId: string, newCount: number): Promise<number> {
     await this.cache.set(storeId, tweetId, 'count', newCount)
 
     return newCount
-  }
-
-  @Cron('* * * * *')
-  protected async refreshLikeCounts(): Promise<void> {
-    const query = this.likesRepository
-      .createQueryBuilder()
-      .from(Like, 'like')
-      .select('like.tweet_id', 'tweet_id')
-      .addSelect('count(*)', 'like_count')
-      .groupBy('like.tweet_id')
-
-    const entries = await query.getRawMany<TweetLikeCountEntryRaw>()
-    const countsSet = entries.map(async ({ tweet_id, like_count }) => {
-      await this.setCount(tweet_id, like_count)
-    })
-
-    await Promise.all(countsSet)
   }
 
   async getCount(
@@ -100,6 +77,6 @@ export class ZeroCountDecrementError extends ServerError {
   public override readonly statusCode = '500'
 
   constructor(public readonly tweetId: string) {
-    super(`Attempted to decrement likes count to tweet "${tweetId}", but it is already 0`)
+    super(`Attempted to decrement likes count to tweet "${tweetId}", but it is already at 0`)
   }
 }

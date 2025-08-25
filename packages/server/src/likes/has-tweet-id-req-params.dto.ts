@@ -1,6 +1,6 @@
 import { IsUUID } from "class-validator"
 
-export class LikeTweetReqParams {
+export class HasTweetIdReqParams {
   @IsUUID('4')
   readonly tweetId!: string
 }

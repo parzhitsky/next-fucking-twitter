@@ -5,6 +5,7 @@ import { CacheModule } from '@/cache/cache.module.js'
 import { ConfigModule } from '@/config/config.module.js'
 import { DbModule } from '@/db/db.module.js'
 import { HealthModule } from '@/health/health.module.js'
+import { LikesModule } from '@/likes/likes.module.js'
 import { TweetsModule } from '@/tweets/tweets.module.js'
 import { AppErrorFilter } from './app-error/app-error.filter.js'
 import { DevModule } from './dev/dev.module.js'
@@ -26,6 +27,7 @@ interface RegisterParams {
     AuthModule,
     HealthModule,
     TweetsModule,
+    LikesModule,
   ],
   providers: [
     AppErrorFilter,

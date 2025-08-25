@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne } from "typeorm"
+import { Tweet } from "@/tweets/tweet.entity.js"
 import { User } from "@/users/user.entity.js"
-import { Tweet } from "./tweet.entity.js"
 
 @Entity('like')
 export class Like {

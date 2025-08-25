@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
-import { ListPaginated } from "@@libs/@eco/utils/pagination/list-paginated.type.js"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Repository } from "typeorm"
+import { ListPaginated } from "@@libs/@eco/utils/pagination/list-paginated.type.js"
 import { PaginationParams } from "@/common/pagination-params.dto.js"
 import { Following } from "@/users/following.entity.js"
 import { Tweet } from "./tweet.entity.js"
