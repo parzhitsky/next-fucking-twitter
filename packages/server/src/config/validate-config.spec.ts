@@ -14,6 +14,7 @@ describe(validateConfig.name, () => {
     DB_NAME: 'db',
     DB_USER: 'dbUser',
     DB_PASS: 'dbPass',
+    CACHE_URL: 'redis://localhost:6379/',
   }
 
   it(`should convert plain valid config objects to instances of ${ConfigDTO.name}`, () => {
