@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer'
-import { IsInt, IsNotEmpty, IsPort, IsPositive, IsString, Min } from 'class-validator'
+import { IsInt, IsNotEmpty, IsPort, IsPositive, IsString, IsUrl, Min } from 'class-validator'
 import { EnvName } from './env-name.js'
 import { IsValidEnum } from './is-valid-enum.decorator.js'
 
@@ -46,6 +46,17 @@ export class ConfigDTO {
   @IsString()
   @IsNotEmpty()
   readonly DB_PASS!: string
+
+  @IsUrl({
+    allow_query_components: false,
+    allow_underscores: true,
+    disallow_auth: false,
+    protocols: ['redis', 'rediss'],
+    require_port: true,
+    require_protocol: true,
+    require_tld: false,
+  })
+  readonly CACHE_URL!: string
 
   @IsPort()
   readonly PORT: string = defaults.PORT

@@ -4,9 +4,10 @@ import { PaginationParams } from "@/common/pagination-params.dto.js"
 import { CreateTweetReqBody } from "./create-tweet-req-body.dto.js"
 import { LikeTweetReqParams } from "./like-tweet-req-params.dto.js"
 import { LikesService } from "./likes.service.js"
+import { TimelineRow, TimelineService } from "./timeline.service.js"
 import { Tweet } from "./tweet.entity.js"
 import { TweetsService } from "./tweets.service.js"
-import { TimelineRow, TimelineService } from "./timeline.service.js"
+import { TweetLikeCountCacheService } from "./tweet-like-count-cache.service.js"
 
 @Controller('tweets')
 export class TweetsController {
@@ -14,6 +15,7 @@ export class TweetsController {
     protected readonly tweetsService: TweetsService,
     protected readonly timelineService: TimelineService,
     protected readonly likesService: LikesService,
+    protected readonly tweetLikeCountCacheService: TweetLikeCountCacheService,
   ) { }
 
   @Get()
@@ -52,7 +54,7 @@ export class TweetsController {
     @Param() { tweetId }: LikeTweetReqParams,
   ): Promise<Api.HttpResponseBody<number>> {
     const tweet = await this.tweetsService.getById(tweetId)
-    const likeCount = await this.likesService.getLikesCount(tweet.id)
+    const likeCount = await this.tweetLikeCountCacheService.getCount(tweet.id)
 
     await this.likesService.likeTweet(claims.userId, tweet.id)
 

@@ -5,6 +5,12 @@ services:
     ports:
       - '${DB_PORT_HOST}:${DB_PORT_CONTAINER}'
 
+  cache:
+    volumes:
+      - './volumes/cache:/data'
+    ports:
+      - '${CACHE_PORT_HOST}:6379'
+
   server:
     environment:
       NODE_ENV: development
