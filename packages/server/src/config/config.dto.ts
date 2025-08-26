@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer'
-import { IsInt, IsNotEmpty, IsPort, IsPositive, IsString, IsUrl, Min } from 'class-validator'
+import { IsInt, IsNotEmpty, IsPort, IsPositive, IsString, Matches, Min } from 'class-validator'
 import { EnvName } from './env-name.js'
 import { IsValidEnum } from './is-valid-enum.decorator.js'
 
@@ -15,6 +15,8 @@ export const MIN_RATE_LIMITER_MAX_HITS_PER_TIMEFRAME = 1
 
 export const defaults = {
   NODE_ENV: EnvName.production,
+  CACHE_PROTOCOL: 'redis',
+  CACHE_USER: 'default',
   PORT: '3000',
   RATE_LIMITER_TIMEFRAME_MSEC: 1000,
   RATE_LIMITER_MAX_HITS_PER_TIMEFRAME: 5,
@@ -47,16 +49,23 @@ export class ConfigDTO {
   @IsNotEmpty()
   readonly DB_PASS!: string
 
-  @IsUrl({
-    allow_query_components: false,
-    allow_underscores: true,
-    disallow_auth: false,
-    protocols: ['redis', 'rediss'],
-    require_port: true,
-    require_protocol: true,
-    require_tld: false,
-  })
-  readonly CACHE_URL!: string
+  @IsString()
+  @Matches(/^rediss?$/)
+  readonly CACHE_PROTOCOL: string = defaults.CACHE_PROTOCOL
+
+  @IsString()
+  @IsNotEmpty()
+  readonly CACHE_HOST!: string
+
+  @IsPort()
+  readonly CACHE_PORT!: string
+
+  @IsString() // can be empty
+  readonly CACHE_USER: string = defaults.CACHE_USER
+
+  @IsString()
+  @IsNotEmpty()
+  readonly CACHE_PASS!: string
 
   @IsPort()
   readonly PORT: string = defaults.PORT

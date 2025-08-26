@@ -1,5 +1,5 @@
 import { Global, Module } from "@nestjs/common"
-import { CacheModuleOptions, CacheModule as NestCacheModule } from "@nestjs/cache-manager"
+import { CacheModule as NestCacheModule } from "@nestjs/cache-manager"
 import KeyvRedis from "@keyv/redis"
 import { ConfigService } from "@/config/config.service.js"
 import { CacheService } from "./cache.service.js"
@@ -9,9 +9,12 @@ import { CacheService } from "./cache.service.js"
   imports: [
     NestCacheModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService): CacheModuleOptions => ({
+      useFactory: (config: ConfigService) => ({
         stores: [
-          new KeyvRedis(config.get(config.keys.CACHE_URL)),
+          new KeyvRedis(config.getCacheUrl(), {
+            throwOnConnectError: true,
+            throwOnErrors: true,
+          }),
         ],
       }),
     }),

@@ -30,4 +30,16 @@ export class ConfigService extends NestConfigService<ConfigDTO, true> {
   public isDevelopment(): boolean {
     return this.get(this.keys.NODE_ENV) === EnvName.development
   }
+
+  public getCacheUrl(): string {
+    const protocol = this.get(this.keys.CACHE_PROTOCOL)
+    const hostname = this.get(this.keys.CACHE_HOST)
+    const username = this.get(this.keys.CACHE_USER)
+    const password = this.get(this.keys.CACHE_PASS)
+    const port = this.get(this.keys.CACHE_PORT)
+
+    const url = new URL(`${protocol}://${username}:${password}@${hostname}:${port}`)
+
+    return url.toString()
+  }
 }

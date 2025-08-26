@@ -9,6 +9,7 @@
     "postbuild": "tsc-alias --project tsconfig.build.json",
     "start": "node --enable-source-maps dist/main.js",
     "_sorry_no_watch_mode": "echo \u001b[31mError\u001b[0m: Package \u001b[1mtsconfig-paths\u001b[0m, used by nest --watch, \u001b[1mdoes not support ESM\u001b[0m && exit 1",
+    "dc:dev": "tsx --enable-source-maps src/main.ts",
     "dev": "npm run --silent _sorry_no_watch_mode && nest start --watch",
     "debug": "npm run --silent _sorry_no_watch_mode && nest start --watch --debug",
     "lint": "eslint \"**/*.ts\"",
