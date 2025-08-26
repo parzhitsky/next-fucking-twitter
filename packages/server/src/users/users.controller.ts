@@ -24,7 +24,7 @@ export class UsersController {
     }
   }
 
-  @Post(':followeeAlias/followings')
+  @Post(':followeeAlias/follow')
   async followUser(
     @AccessClaims() claims: AccessClaims,
     @Param() { followeeAlias }: FollowUserReqParams,
@@ -34,6 +34,18 @@ export class UsersController {
 
     return {
       result: following,
+    }
+  }
+
+  /** @deprecated */
+  @Post(':followeeAlias/followings')
+  @Redirect()
+  async followUserOld(
+    @Param() { followeeAlias }: { readonly followeeAlias: string }, // not using the class to opt out of unnecessary validation
+  ): Promise<HttpRedirectResponse> {
+    return {
+      url: `/v1/users/${followeeAlias}/follow`,
+      statusCode: 308,
     }
   }
 }
