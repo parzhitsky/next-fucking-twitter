@@ -40,6 +40,7 @@ export class TweetLikeCountCacheRefresherService {
     await this.cache.set(storeId, 'db', 'lastUpdatedAt', Date.now())
   }
 
+  @Cron('0 * * * *')
   protected async refreshLikeCounts(): Promise<void> {
     const now = Date.now()
     const query = this.likesRepository
