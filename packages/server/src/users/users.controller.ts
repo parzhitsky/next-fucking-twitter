@@ -1,4 +1,4 @@
-import { Controller, HttpRedirectResponse, Param, Post, Redirect, Version } from "@nestjs/common"
+import { Controller, Delete, HttpRedirectResponse, Param, Post, Redirect, Version } from "@nestjs/common"
 import { Open } from "@/auth/open.decorator.js"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
 import { FollowUserReqParams } from "./follow-user-req-params.dto.js"
@@ -34,6 +34,19 @@ export class UsersController {
 
     return {
       result: following,
+    }
+  }
+
+  @Delete(':followeeAlias/follow')
+  async unfollowUser(
+    @AccessClaims() claims: AccessClaims,
+    @Param() { followeeAlias }: FollowUserReqParams,
+  ): Promise<Api.HttpResponseBody<null>> {
+    const followee = await this.usersService.getByAlias(followeeAlias)
+    const following = await this.followingsService.removeFollowing(claims.userId, followee.id)
+
+    return {
+      result: null,
     }
   }
 

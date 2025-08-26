@@ -30,19 +30,46 @@ export class FollowingsService {
 
     return this.followingsRepo.save(following)
   }
+
+  async removeFollowing(followerId: string, followeeId: string): Promise<void> {
+    if (followerId === followeeId) {
+      throw new UserCannotUnfollowSelfError(followerId)
+    }
+
+    const props = { followeeId, followerId } as const
+    const following = await this.followingsRepo.findOneBy(props)
+
+    if (following == null) {
+      throw new FollowingMissingError(followeeId, followerId)
+    }
+
+    await this.followingsRepo.remove(following)
+  }
 }
 
-export class UserCannotFollowSelfError extends ClientError {
+abstract class SelfActionError extends ClientError {
   public override readonly statusCode = '409'
 
-  constructor(public readonly userId: string) {
-    super('Users cannot follow themselves')
+  constructor(actionName: 'follow' | 'unfollow', public readonly userId: string) {
+    super(`Users cannot ${actionName} themselves`)
 
     this.addDetail({
       public: true,
-      message: `User "${userId}" attempted to follow themselves`,
+      message: `User "${userId}" attempted to ${actionName} themselves`,
       payload: userId,
     })
+  }
+}
+
+export class UserCannotFollowSelfError extends SelfActionError {
+  constructor(userId: string) {
+    super('follow', userId)
+  }
+}
+
+export class UserCannotUnfollowSelfError extends SelfActionError {
+  constructor(userId: string) {
+    super('unfollow', userId)
   }
 }
 
@@ -63,5 +90,16 @@ export class FollowingAlreadyCreatedError extends ClientError {
         followeeId,
       },
     })
+  }
+}
+
+export class FollowingMissingError extends ClientError {
+  public override readonly statusCode = '404'
+
+  constructor(
+    public readonly followerId: string,
+    public readonly followeeId: string,
+  ) {
+    super(`Could not unfollow user "${followerId}" from "${followeeId}": such connection does not exist to begin with`)
   }
 }
