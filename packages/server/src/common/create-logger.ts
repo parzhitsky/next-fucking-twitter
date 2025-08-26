@@ -1,11 +1,15 @@
 import * as NestJs from '@nestjs/common'
 import { sha1 as hash } from 'object-hash'
+import { EnvName } from '@/config/env-name.js'
+
+// TODO: set a JSON logger with multiple transports
 
 /** @private */
-type LoggerParams = NonNullable<ConstructorParameters<typeof NestJs.Logger>[1]>
+type LoggerParams = NonNullable<ConstructorParameters<typeof NestJs.ConsoleLogger>[1]>
 
 /** @private */
 const defaultLoggerParams = {
+  json: process.env.NODE_ENV === EnvName.production,
   timestamp: true,
 } satisfies LoggerParams
 
