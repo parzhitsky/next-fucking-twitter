@@ -43,11 +43,10 @@ export class TweetLikeCountCacheRefresherService {
   protected async refreshLikeCounts(): Promise<void> {
     const now = Date.now()
     const query = this.likesRepository
-      .createQueryBuilder()
-      .from(Like, 'like')
-      .select('like.tweet_id', 'tweet_id')
+      .createQueryBuilder('l')
+      .select('l.tweet_id', 'tweet_id')
       .addSelect('count(*)', 'like_count')
-      .groupBy('like.tweet_id')
+      .groupBy('l.tweet_id')
 
     const entries = await query.getRawMany<TweetLikeCountEntryRaw>()
     const countsSet = entries.map(async ({ tweet_id, like_count }) => {
