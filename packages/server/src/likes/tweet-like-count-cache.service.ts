@@ -61,12 +61,13 @@ export class TweetLikeCountCacheService {
   }
 
   async getCounts(tweetIds: string[]): Promise<Counts> {
-    const countEntries = await Promise.all(tweetIds.map(async (id) => [
+    const ids = Array.from(new Set(tweetIds))
+    const entries = await Promise.all(ids.map(async (id) => [
       id,
       await this.getCount(id),
     ] as const))
 
-    const counts = Object.fromEntries(countEntries)
+    const counts = Object.fromEntries(entries)
 
     return counts
   }
