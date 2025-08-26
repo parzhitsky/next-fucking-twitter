@@ -1,5 +1,5 @@
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from "@nestjs/common"
 import { AccessClaims } from "@/auth/access-claims.decorator.js"
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from "@nestjs/common"
 import { TweetsService } from "@/tweets/tweets.service.js"
 import { GetCountsReqBody } from "./get-counts-req-body.dto.js"
 import { HasTweetIdReqParams } from "./has-tweet-id-req-params.dto.js"
@@ -50,6 +50,21 @@ export class LikesController {
 
     return {
       result: likeCount + 1,
+    }
+  }
+
+  @Delete(':tweetId')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async removeLike(
+    @AccessClaims() claims: AccessClaims,
+    @Param() { tweetId }: HasTweetIdReqParams,
+  ): Promise<Api.HttpResponseBody<number>> {
+    const tweet = await this.tweetsService.getById(tweetId)
+    const likeCount = await this.tweetLikeCountCacheService.getCount(tweet.id)
+    const removed = await this.likesService.removeLike(claims.userId, tweet.id)
+
+    return {
+      result: likeCount - (removed ? 1 : 0),
     }
   }
 }

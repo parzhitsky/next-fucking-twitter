@@ -20,15 +20,24 @@ export class LikesService {
     protected readonly tweetLikeCountCacheRefresherService: TweetLikeCountCacheRefresherService,
   ) { }
 
+  private async act(actionName: 'create' | 'remove', like: Like): Promise<void> {
+    const { tweetId } = like // `.remove(like)` makes `like.tweetId` undefined
+
+    if (actionName === 'create') {
+      await this.likesRepository.save(like)
+      /* no await */ this.tweetLikeCountCacheService.incrementCount(tweetId)
+    } else if (actionName === 'remove') {
+      await this.likesRepository.remove(like)
+      /* no await */ this.tweetLikeCountCacheService.decrementCount(tweetId)
+    }
+
+    this.tweetLikeCountCacheRefresherService.signalDbUpdate()
+  }
+
   protected async addLikeRecord(props: LikeBare): Promise<Like> {
     const like = this.likesRepository.create(props)
 
-    await this.likesRepository.save(like)
-
-    /* no await */ Promise.all([
-      this.tweetLikeCountCacheService.incrementCount(props.tweetId),
-      this.tweetLikeCountCacheRefresherService.signalDbUpdate(),
-    ])
+    await this.act('create', like)
 
     return like
   }
@@ -42,6 +51,18 @@ export class LikesService {
     }
 
     return this.addLikeRecord(props)
+  }
+
+  async removeLike(userId: string, tweetId: string): Promise<boolean> {
+    const like = await this.likesRepository.findOneBy({ userId, tweetId })
+
+    if (like == null) {
+      return false
+    }
+
+    await this.act('remove', like)
+
+    return true
   }
 }
 
