@@ -9,7 +9,7 @@ services:
     volumes:
       - './volumes/cache:/data'
     ports:
-      - '${CACHE_PORT_HOST}:6379'
+      - '${CACHE_PORT_HOST}:${CACHE_PORT_CONTAINER}'
 
   server:
     environment:
