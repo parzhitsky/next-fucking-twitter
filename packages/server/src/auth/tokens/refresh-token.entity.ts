@@ -15,6 +15,12 @@ export class RefreshToken {
   readonly createdAt!: Date
 
   @Column({
+    name: 'expires_at',
+    type: 'timestamptz',
+  })
+  readonly expiresAt!: Date
+
+  @Column({
     name: 'generated_from_id',
     type: 'uuid',
     nullable: true,

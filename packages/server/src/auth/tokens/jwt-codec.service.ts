@@ -5,6 +5,8 @@ import { ConfigService } from "@/config/config.service.js"
 
 export const ACCESS_TOKEN_TTL = 60_000
 
+export const REFRESH_TOKEN_TTL = 5 * 60_000 // TODO: set to 7 days
+
 interface TokenUserData {
   /** User ID */
   readonly sub: string
@@ -38,7 +40,7 @@ export class JwtCodec {
 
   protected readonly refreshTokenOptions: JwtSignOptions = {
     ...this.withSecret,
-    expiresIn: '5m', // TODO: set to 7 days
+    expiresIn: REFRESH_TOKEN_TTL / 1000,
   }
   constructor(
     protected readonly config: ConfigService,

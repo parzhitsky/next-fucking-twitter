@@ -29,42 +29,49 @@ export class TokensService {
     }
   }
 
-  protected async verifyRefreshToken(token: string): Promise<[RefreshTokenPayload, RefreshToken]> {
+  protected async resolveRefreshToken(token: string): Promise<[RefreshToken, RefreshTokenPayload]> {
     const payload = await this.jwtCodec.decodeToken('refresh', token)
     const record = await this.refreshTokenRecordService.getById(payload.jti)
 
-    return [payload, record]
+    return [record, payload]
   }
 
   async revokeRefreshToken(token: string): Promise<void> {
-    const [, record] = await this.verifyRefreshToken(token)
+    const [record] = await this.resolveRefreshToken(token)
 
-    await this.refreshTokenRecordService.markAsRevoked(record)
+    await this.refreshTokenRecordService.revoke(record)
   }
 
   async refreshPair(refreshToken: string): Promise<TokenPair> {
-    const [payload, record] = await this.verifyRefreshToken(refreshToken)
+    const [record, payload] = await this.resolveRefreshToken(refreshToken)
 
-    const isRevoked = this.refreshTokenRecordService.getIsRevoked(record)
+    const inactive = this.refreshTokenRecordService.findInactiveReason(record)
 
-    if (isRevoked) {
-      throw new RefreshTokenRevokedError(record.id)
-        .addDetail({
+    if (inactive) {
+      throw new RefreshTokenInactiveError(record.id)
+        .addDetailIf(inactive.revoked!, () => ({
           public: true,
           message: `Refresh token was revoked at ${record.revokedAt}`,
           payload: record.revokedAt!,
-        })
+        }))
+        .addDetailIf(inactive.expired!, () => ({
+          public: true,
+          message: `Refresh token had expired at ${record.expiresAt}`,
+          payload: record.expiresAt!,
+        }))
     }
 
-    await this.refreshTokenRecordService.markAsRevoked(record)
+    const [tokenPair] = await Promise.all([
+      this.generatePair(payload.sub, payload.alias, payload.jti),
+      this.refreshTokenRecordService.revoke(record),
+    ])
 
-    const tokenPair = await this.generatePair(payload.sub, payload.alias, payload.jti)
 
     return tokenPair
   }
 }
 
-export class RefreshTokenRevokedError extends ClientError {
+export class RefreshTokenInactiveError extends ClientError {
   public override readonly statusCode = '403'
 
   constructor(public readonly tokenId: string) {

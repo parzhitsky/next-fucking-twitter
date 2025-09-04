@@ -4,6 +4,11 @@ import { Repository } from "typeorm"
 import { ServerError } from "@/app/app-error/app-error.js"
 import { RefreshToken } from "./refresh-token.entity.js"
 
+interface InactiveReason {
+  readonly expired?: true
+  readonly revoked?: true
+}
+
 @Injectable()
 export class RefreshTokenRecordService {
   constructor(
@@ -13,6 +18,7 @@ export class RefreshTokenRecordService {
 
   async create(oldTokenId?: string): Promise<RefreshToken> {
     const record = this.refreshTokenRepo.create({
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
       generatedFromId: oldTokenId ?? null,
     })
 
@@ -29,19 +35,29 @@ export class RefreshTokenRecordService {
     return record
   }
 
-  getIsRevoked(record: RefreshToken): boolean {
-    if (record.revokedAt == null) {
-      return false
+  findInactiveReason(record: RefreshToken): InactiveReason | null {
+    const now = new Date()
+
+    if (record.expiresAt <= now) {
+      return {
+        expired: true,
+      }
     }
 
-    if (record.revokedAt.getTime() >= Date.now()) {
+    if (record.revokedAt == null) {
+      return null
+    }
+
+    if (record.revokedAt >= now) {
       throw new RefreshTokenRevokedInFutureError(record.id)
     }
 
-    return true
+    return {
+      revoked: true,
+    }
   }
 
-  async markAsRevoked(record: RefreshToken): Promise<void> {
+  async revoke(record: RefreshToken): Promise<void> {
     record.revokedAt = new Date()
 
     await this.refreshTokenRepo.save(record)
