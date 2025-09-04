@@ -60,6 +60,21 @@ export class AuthController {
     return this.tokenPairApplied(res, tokenPair)
   }
 
+  @Post('signout')
+  @HttpCode(HttpStatus.OK)
+  async signOut(
+    @Body() creds: UserCreds,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Api.HttpResponseBody<null>> {
+    res.clearCookie('access_token', this.accessTokenCookieOptions)
+
+    await this.authService.signOut(creds)
+
+    return {
+      result: null,
+    }
+  }
+
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(

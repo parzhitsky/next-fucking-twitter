@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { ClientError } from "@/app/app-error/app-error.js"
+import { createLogger } from "@/common/create-logger.js"
 import { AccessTokenPayload, JwtCodec, RefreshTokenPayload } from "./jwt-codec.service.js"
 import { RefreshToken } from "./refresh-token.entity.js"
 import { RefreshTokenRecordService } from "./refresh-token-record.service.js"
@@ -11,13 +12,19 @@ export interface TokenPair {
 
 @Injectable()
 export class TokensService {
+  protected readonly logger = createLogger(this.constructor)
+
   constructor(
     protected readonly jwtCodec: JwtCodec,
     protected readonly refreshTokenRecordService: RefreshTokenRecordService,
   ) { }
 
   async generatePair(userId: string, userAlias: string, oldRefreshTokenId?: string): Promise<TokenPair> {
-    const record = await this.refreshTokenRecordService.create(oldRefreshTokenId)
+    const record = await this.refreshTokenRecordService.create({
+      userId,
+      oldTokenId: oldRefreshTokenId,
+    })
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtCodec.encodeAccessToken(userId, userAlias),
       this.jwtCodec.encodeRefreshToken(userId, userAlias, record.id),
@@ -44,6 +51,20 @@ export class TokensService {
     const [record] = await this.resolveRefreshToken(token)
 
     await this.refreshTokenRecordService.revoke(record)
+  }
+
+  async revokeAllRefreshTokensByUserId(userId: string): Promise<number> {
+    const tokens = await this.refreshTokenRecordService.findByUserId(userId)
+    const tokensRevoked = tokens.map((token) => this.refreshTokenRecordService.revoke(token))
+    const results = await Promise.allSettled(tokensRevoked)
+
+    for (const result of results) {
+      if (result.status !== 'fulfilled') {
+        this.logger.warn(result.reason)
+      }
+    }
+
+    return tokens.length
   }
 
   async refreshPair(refreshToken: string): Promise<TokenPair> {

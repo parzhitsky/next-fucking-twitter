@@ -5,6 +5,11 @@ import { ServerError } from "@/app/app-error/app-error.js"
 import { REFRESH_TOKEN_TTL } from "./jwt-codec.service.js"
 import { RefreshToken } from "./refresh-token.entity.js"
 
+interface CreateParams {
+  readonly userId: string
+  readonly oldTokenId?: string
+}
+
 interface InactiveReason {
   readonly expired?: true
   readonly revoked?: true
@@ -17,8 +22,9 @@ export class RefreshTokenRecordService {
     protected readonly refreshTokenRepo: Repository<RefreshToken>,
   ) { }
 
-  async create(oldTokenId?: string): Promise<RefreshToken> {
+  async create({ userId, oldTokenId }: CreateParams): Promise<RefreshToken> {
     const record = this.refreshTokenRepo.create({
+      userId,
       expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
       generatedFromId: oldTokenId ?? null,
     })
@@ -34,6 +40,10 @@ export class RefreshTokenRecordService {
     }
 
     return record
+  }
+
+  async findByUserId(userId: string): Promise<RefreshToken[]> {
+    return this.refreshTokenRepo.findBy({ userId })
   }
 
   findInactiveReason(record: RefreshToken): InactiveReason | null {
@@ -59,6 +69,10 @@ export class RefreshTokenRecordService {
   }
 
   async revoke(record: RefreshToken): Promise<void> {
+    if (record.revokedAt != null) {
+      return
+    }
+
     record.revokedAt = new Date()
 
     await this.refreshTokenRepo.save(record)

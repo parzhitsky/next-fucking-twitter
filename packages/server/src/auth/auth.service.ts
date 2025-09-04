@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { ClientError } from "@/app/app-error/app-error.js"
+import { User } from "@/users/user.entity.js"
 import { UsersService } from "@/users/users.service.js"
 import { UserCreds } from "@/users/user-creds.dto.js"
 import { TokensService, TokenPair } from "./tokens/tokens.service.js"
@@ -15,14 +16,26 @@ export class AuthService {
     await this.userService.create(creds)
   }
 
-  async signIn(creds: UserCreds): Promise<TokenPair> {
+  protected async getUserByCreds(creds: UserCreds): Promise<User> {
     const user = await this.userService.findByCreds(creds)
 
     if (!user) {
       throw new SignInError(creds.userAlias)
     }
 
+    return user
+  }
+
+  async signIn(creds: UserCreds): Promise<TokenPair> {
+    const user = await this.getUserByCreds(creds)
+
     return this.tokensService.generatePair(user.id, user.alias)
+  }
+
+  async signOut(creds: UserCreds): Promise<void> {
+    const user = await this.getUserByCreds(creds)
+
+    await this.tokensService.revokeAllRefreshTokensByUserId(user.id)
   }
 }
 

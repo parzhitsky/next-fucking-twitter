@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm'
+import { User } from '@/users/user.entity.js'
 
 @Entity('refresh_token')
 export class RefreshToken {
@@ -6,6 +7,19 @@ export class RefreshToken {
     name: 'id',
   })
   readonly id!: string
+
+  @Column({
+    name: 'user_id',
+    type: 'uuid',
+  })
+  readonly userId!: string
+
+  @ManyToOne(() => User)
+  @JoinColumn({
+    name: 'user_id',
+    referencedColumnName: 'id',
+  })
+  readonly user!: Promise<User | null>
 
   @CreateDateColumn({
     name: 'created_at',
