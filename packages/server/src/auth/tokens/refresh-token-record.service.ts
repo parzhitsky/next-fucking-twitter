@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { Repository } from "typeorm"
 import { ServerError } from "@/app/app-error/app-error.js"
+import { REFRESH_TOKEN_TTL } from "./jwt-codec.service.js"
 import { RefreshToken } from "./refresh-token.entity.js"
 
 interface InactiveReason {
