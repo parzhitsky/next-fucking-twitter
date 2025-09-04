@@ -27,7 +27,7 @@ interface TweetLikeCountEntryRaw {
 
 @Injectable()
 export class TweetLikeCountCacheRefresherService {
-  protected readonly logger = createLogger(this.constructor.name)
+  protected readonly logger = createLogger(this.constructor)
 
   constructor(
     @InjectRepository(Like)
