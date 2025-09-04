@@ -2,7 +2,8 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Query, Res, Version } fro
 import { CookieOptions, Response } from 'express'
 import { ConfigService } from "@/config/config.service.js"
 import { UserCreds } from "@/users/user-creds.dto.js"
-import { ACCESS_TOKEN_TTL, TokenPair, TokensService } from "./tokens/tokens.service.js"
+import { TokenPair, TokensService } from "./tokens/tokens.service.js"
+import { ACCESS_TOKEN_TTL } from "./tokens/jwt-codec.service.js"
 import { AuthService } from "./auth.service.js"
 import { HasRefreshToken } from "./has-refresh-token.dto.js"
 import { Open } from "./open.decorator.js"

@@ -2,8 +2,8 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
 import { Reflector } from "@nestjs/core"
 import { Request } from "express"
 import { ClientError, ServerError } from "@/app/app-error/app-error.js"
+import { AccessTokenPayload, JwtCodec } from "./tokens/jwt-codec.service.js"
 import { OPEN } from "./open.decorator.js"
-import { AccessTokenPayload, TokensService } from "./tokens/tokens.service.js"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -17,7 +17,7 @@ declare global {
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    protected readonly tokensService: TokensService,
+    protected readonly jwtCodec: JwtCodec,
     protected readonly reflector: Reflector,
   ) { }
 
@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate {
       throw new AccessTokenPayloadAlreadyExtractedError(token)
     }
 
-    const payload = await this.tokensService.verifyToken('access', token)
+    const payload = await this.jwtCodec.decodeToken('access', token)
 
     req.accessTokenPayload = payload
 

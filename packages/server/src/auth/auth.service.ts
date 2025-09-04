@@ -22,10 +22,7 @@ export class AuthService {
       throw new SignInError(creds.userAlias)
     }
 
-    return this.tokensService.generatePair({
-      sub: user.id,
-      alias: user.alias,
-    })
+    return this.tokensService.generatePair(user.id, user.alias)
   }
 }
 
