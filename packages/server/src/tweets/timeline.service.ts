@@ -52,14 +52,17 @@ export class TimelineService {
       .limit(limit)
       .offset(offset)
 
-    const timeline = await query.getRawMany<TimelineRow>()
+    const [timeline, totalCount] = await Promise.all([
+      query.getRawMany<TimelineRow>(),
+      query.getCount(),
+    ])
 
     return {
       items: timeline,
       pagination: {
         limit,
         offset,
-        totalCount: NaN,
+        totalCount,
       },
     }
   }
