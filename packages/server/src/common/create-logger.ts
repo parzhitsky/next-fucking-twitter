@@ -4,8 +4,18 @@ import { EnvName } from '@/config/env-name.js'
 
 // TODO: set a JSON logger with multiple transports
 
+interface Named {
+  readonly name: string
+}
+
+type ContextInput = string | Named
+
+export function getContext(input: ContextInput): string {
+  return input instanceof Object ? input.name : input
+}
+
 /** @private */
-type LoggerParams = NonNullable<ConstructorParameters<typeof NestJs.ConsoleLogger>[1]>
+type LoggerParams = NestJs.ConsoleLoggerOptions
 
 /** @private */
 const defaultLoggerParams = {
@@ -16,15 +26,19 @@ const defaultLoggerParams = {
 /** @public */
 class Logger extends NestJs.ConsoleLogger {
   protected readonly contextLevelSeparator: string = '/'
+  protected override readonly context: string // make context required
 
   constructor(
-    protected override readonly context: string, // make context required
+    contextInput: ContextInput,
     protected readonly params: LoggerParams = defaultLoggerParams,
   ) {
-    super(context, params)
+    super(params)
+
+    this.context = getContext(contextInput)
   }
 
-  contextualize(childContext: string): Logger {
+  contextualize(childContextInput: ContextInput): Logger {
+    const childContext = getContext(childContextInput)
     const newContext = `${this.context}${this.contextLevelSeparator}${childContext}`
     const childLogger = loggerFactory.createOrGet(newContext, this.params)
 
@@ -70,7 +84,8 @@ class LoggerFactory {
 /** @private */
 const loggerFactory = new LoggerFactory()
 
-export function createLogger(context: string, params: LoggerParams = defaultLoggerParams): Logger {
+export function createLogger(contextInput: ContextInput, params: LoggerParams = defaultLoggerParams): Logger {
+  const context = getContext(contextInput)
   const logger = loggerFactory.createOrGet(context, params)
 
   return logger
