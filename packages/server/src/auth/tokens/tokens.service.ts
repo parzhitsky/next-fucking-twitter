@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { ClientError } from "@/app/app-error/app-error.js"
-import { JwtCodec, RefreshTokenPayload } from "./jwt-codec.service.js"
+import { AccessTokenPayload, JwtCodec, RefreshTokenPayload } from "./jwt-codec.service.js"
 import { RefreshToken } from "./refresh-token.entity.js"
 import { RefreshTokenRecordService } from "./refresh-token-record.service.js"
 
@@ -27,6 +27,10 @@ export class TokensService {
       accessToken,
       refreshToken,
     }
+  }
+
+  async validateAccessToken(token: string): Promise<AccessTokenPayload> {
+    return this.jwtCodec.decodeToken('access', token)
   }
 
   protected async resolveRefreshToken(token: string): Promise<[RefreshToken, RefreshTokenPayload]> {

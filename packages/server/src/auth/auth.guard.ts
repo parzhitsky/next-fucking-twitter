@@ -2,7 +2,8 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
 import { Reflector } from "@nestjs/core"
 import { Request } from "express"
 import { ClientError, ServerError } from "@/app/app-error/app-error.js"
-import { AccessTokenPayload, JwtCodec } from "./tokens/jwt-codec.service.js"
+import { AccessTokenPayload } from "./tokens/jwt-codec.service.js"
+import { TokensService } from "./tokens/tokens.service.js"
 import { OPEN } from "./open.decorator.js"
 
 declare global {
@@ -17,7 +18,7 @@ declare global {
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    protected readonly jwtCodec: JwtCodec,
+    protected readonly tokensService: TokensService,
     protected readonly reflector: Reflector,
   ) { }
 
@@ -32,19 +33,21 @@ export class AuthGuard implements CanActivate {
     }
 
     const req = context.switchToHttp().getRequest<Request>()
-    const token = req.cookies.access_token
+    const token = req.cookies.access_token as string
 
     if (!token) {
       throw new AccessTokenCookieMissingError()
+    }
+
+    if (typeof token !== 'string') {
+      throw new AccessTokenCookieInvalidError(token)
     }
 
     if (req.accessTokenPayload != null) {
       throw new AccessTokenPayloadAlreadyExtractedError(token)
     }
 
-    const payload = await this.jwtCodec.decodeToken('access', token)
-
-    req.accessTokenPayload = payload
+    req.accessTokenPayload = await this.tokensService.validateAccessToken(token)
 
     return true
   }
@@ -55,6 +58,14 @@ export class AccessTokenCookieMissingError extends ClientError {
 
   constructor() {
     super('Cannot authenticate: `access_token` cookie is missing')
+  }
+}
+
+export class AccessTokenCookieInvalidError extends ClientError {
+  public override readonly statusCode = "400"
+
+  constructor(public readonly accessTokenCookie: unknown) {
+    super('Cannot authenticate: `access_token` cookie has invalid vale')
   }
 }
 
