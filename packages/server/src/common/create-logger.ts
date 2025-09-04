@@ -1,6 +1,5 @@
 import * as NestJs from '@nestjs/common'
 import { sha1 as hash } from 'object-hash'
-import { EnvName } from '@/config/env-name.js'
 
 // TODO: set a JSON logger with multiple transports
 
@@ -19,7 +18,7 @@ type LoggerParams = NestJs.ConsoleLoggerOptions
 
 /** @private */
 const defaultLoggerParams = {
-  json: process.env.NODE_ENV === EnvName.production,
+  json: true,
   timestamp: true,
 } satisfies LoggerParams
 
@@ -35,6 +34,10 @@ class Logger extends NestJs.ConsoleLogger {
     super(params)
 
     this.context = getContext(contextInput)
+  }
+
+  get hasColors(): boolean {
+    return this.options.colors ?? false
   }
 
   contextualize(childContextInput: ContextInput): Logger {
