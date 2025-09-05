@@ -4,9 +4,9 @@ import { Cache } from "cache-manager"
 import { ServerError } from "@/app/app-error/app-error.js"
 
 type Landscape = {
-  readonly [storeId: PropertyKey]: {
-    readonly [objectId: PropertyKey]: {
-      readonly [key: PropertyKey]: unknown
+  readonly [storeId: string]: {
+    readonly [objectId: string]: {
+      readonly [key: string]: unknown
     }
   }
 }
@@ -14,20 +14,20 @@ type Landscape = {
 export type StoreIdBy<
   L extends Landscape,
 > =
-  keyof L
+  string & keyof L
 
 export type ObjectIdBy<
   L extends Landscape,
   S extends StoreIdBy<L>,
 > =
-  keyof L[S]
+  string & keyof L[S]
 
 export type KeyBy<
   L extends Landscape,
   S extends StoreIdBy<L>,
   O extends ObjectIdBy<L, S>,
 > =
-  keyof L[S][O]
+  string & keyof L[S][O]
 
 export type ValueBy<
   L extends Landscape,
@@ -36,11 +36,6 @@ export type ValueBy<
   K extends KeyBy<L, S, O>,
 > =
   L[S][O][K]
-
-type ComposePathArgs =
-  | [PropertyKey, PropertyKey, PropertyKey]
-  | [PropertyKey, PropertyKey]
-  | [PropertyKey]
 
 interface SetParams {
   readonly ttl?: number
@@ -67,20 +62,20 @@ export class CacheService<L extends Landscape = Landscape> {
           message: `Path separator is "${this.pathSeparator}"`,
           payload: this.pathSeparator,
         })
+        .addDetail({
+          message: `Path part: ${part}`,
+          payload: part,
+        })
     }
 
     return part
   }
 
-  protected composePath(...args: ComposePathArgs): string {
-    return args.map(String).map(this.assertValidPathPart).join('/')
+  protected composePath(...args: string[]): string {
+    return args.map(this.assertValidPathPart).join('/')
   }
 
-  async get<
-    S extends StoreIdBy<L>,
-    O extends ObjectIdBy<L, S>,
-    K extends KeyBy<L, S, O>,
-  >(
+  async get<S extends StoreIdBy<L>, O extends ObjectIdBy<L, S>, K extends KeyBy<L, S, O>>(
     storeId: S,
     objectId: O,
     key: K,
@@ -91,12 +86,7 @@ export class CacheService<L extends Landscape = Landscape> {
     return value
   }
 
-  async set<
-    S extends StoreIdBy<L>,
-    O extends ObjectIdBy<L, S>,
-    K extends KeyBy<L, S, O>,
-    Value extends ValueBy<L, S, O, K>,
-  >(
+  async set<S extends StoreIdBy<L>, O extends ObjectIdBy<L, S>, K extends KeyBy<L, S, O>, Value extends ValueBy<L, S, O, K>>(
     storeId: S,
     objectId: O,
     key: K,
@@ -116,32 +106,12 @@ export class CacheService<L extends Landscape = Landscape> {
     }
   }
 
-  async del<
-    S extends StoreIdBy<L>,
-    O extends ObjectIdBy<L, S>,
-    K extends KeyBy<L, S, O>,
-  >(
+  async del<S extends StoreIdBy<L>, O extends ObjectIdBy<L, S>, K extends KeyBy<L, S, O>>(
     storeId: S,
     objectId: O,
     key: K,
-  ): Promise<boolean>
-
-  async del<
-    S extends StoreIdBy<L>,
-    O extends ObjectIdBy<L, S>,
-  >(
-    storeId: S,
-    objectId: O,
-  ): Promise<boolean>
-
-  async del<
-    S extends StoreIdBy<L>,
-  >(
-    storeId: S,
-  ): Promise<boolean>
-
-  async del(...args: ComposePathArgs): Promise<boolean> {
-    const path = this.composePath(...args)
+  ): Promise<boolean> {
+    const path = this.composePath(storeId, objectId, key)
 
     return this.cacheManager.del(path)
   }
@@ -150,12 +120,7 @@ export class CacheService<L extends Landscape = Landscape> {
 export class InvalidPathPathError extends ServerError {
   public override readonly statusCode = '500'
 
-  constructor(public readonly pathPart: PropertyKey) {
-    super('Cache path part, when converted to a string, cannot include a path separator')
-
-    this.addDetail({
-      message: `Path part (as string): ${String(pathPart)}`,
-      payload: pathPart,
-    })
+  constructor(public readonly pathPart: string) {
+    super('Cache path part cannot include a path separator')
   }
 }
