@@ -47,7 +47,7 @@ services:
         condition: service_healthy
     build:
       context: '.'
-      dockerfile: server.dockerfile
+      target: server
     environment:
       TOKEN_SECRET:
       PORT: '${SERVER_PORT_CONTAINER}'
@@ -69,7 +69,7 @@ services:
       - server
     build:
       context: '.'
-      dockerfile: client.dockerfile
+      target: client
       args:
         CLIENT_PORT_CONTAINER:
         VITE_SERVER_BASE_URL: 'http://localhost:${SERVER_PORT_HOST}/'
