@@ -1,9 +1,8 @@
 import { type ClassConstructor, type ClassTransformOptions, plainToInstance } from 'class-transformer'
 import { validateSync, type ValidationError, type ValidatorOptions } from 'class-validator'
-import { type Result } from '@@libs/@eco/utils/result/result.type.js'
 import { entriesOf } from '@@libs/@eco/utils/entries-of/entries-of.js'
+import { Result } from '@@libs/@eco/utils/result/result.type.js'
 
-/** @private */
 interface Params {
   transform?: ClassTransformOptions
   validate?: ValidatorOptions
@@ -34,7 +33,6 @@ export function validateAgainstModel<ModelType extends object>(
   }
 }
 
-/** @private */
 function collectMessages(
   errors: ValidationError[],
   messages: string[] = [],
